@@ -1,0 +1,8 @@
+{{template "JavaPackage" .}}
+
+{{template "JavaTypeAnnot" .}}
+public enum {{GenJavaTypeName .Name}} {
+{{range .EnumValueDefinitions }}
+    {{.Value}},
+{{- end}};
+}

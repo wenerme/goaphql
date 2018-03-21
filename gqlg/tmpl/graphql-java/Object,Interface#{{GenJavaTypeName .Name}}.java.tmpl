@@ -1,0 +1,31 @@
+package {{Config.JavaPackage}};
+
+{{template "JavaImport" .}}
+
+{{template "JavaTypeAnnot" .}}
+public interface {{GenJavaTypeName .Name}} extends Resolver{{template "JavaInterfaceExtends" .}} {
+{{range .FieldDefinitions}}
+
+
+    default void resolve{{ToUpperCamel .Name}}(ValueResolver<{{if .ArgumentDefinitions}}{{ToUpperCamel .Name}}Argument{{else}}Void{{end}},{{GenJavaType .Type}}> resolver){
+        resolve(resolver);
+    }
+{{- end}}
+
+
+    {{- /* Arguments */ -}}
+
+{{range .FieldDefinitions -}}
+{{- $field := . -}}
+{{if .ArgumentDefinitions}}
+
+    @Data
+    class {{ToUpperCamel $field.Name}}Argument {
+    {{range .ArgumentDefinitions}}
+        private {{GenJavaType .Type}} {{.Name}}{{if .DefaultValue}} = {{GenJavaValue .DefaultValue}}{{end}};
+    {{end}}
+    }
+{{- end}}
+{{- end}}
+
+}

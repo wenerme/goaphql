@@ -1,0 +1,16 @@
+package {{Config.JavaPackage}};
+
+{{template "JavaImport" .}}
+
+{{- $javaTypeName := GenJavaTypeName .Name -}}
+
+{{template "JavaTypeAnnot" .}}
+public interface Is{{$javaTypeName}} {
+
+    default {{$javaTypeName}} as{{$javaTypeName}}(){
+        if(this instanceof {{$javaTypeName}}){
+            return ({{$javaTypeName}})this;
+        }
+        throw new UnsupportedOperationException("Unimplemented");
+    }
+}

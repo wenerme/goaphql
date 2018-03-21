@@ -1,0 +1,9 @@
+{{template "JavaPackage" .}}
+
+{{template "JavaTypeAnnot" .}}
+@Data
+public class {{GenJavaTypeName .Name}} {
+{{range .InputFieldDefinitions}}
+    private {{GenJavaType .Type}} {{.Name}}{{if .DefaultValue}} = {{GenJavaValue .DefaultValue}}{{end}};
+{{end}}
+}
