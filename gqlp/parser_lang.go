@@ -1,19 +1,11 @@
 package gqlp
 
 import (
-	"github.com/Sirupsen/logrus"
 	"github.com/antlr/antlr4/runtime/Go/antlr"
 	"github.com/wenerme/goaphql/gqll"
 	"reflect"
 	"strconv"
 )
-
-/*
-func (v *BaseParseTreeVisitor) Visit(tree ParseTree) interface{}            { return nil }
-func (v *BaseParseTreeVisitor) VisitChildren(node RuleNode) interface{}     { return nil }
-func (v *BaseParseTreeVisitor) VisitTerminal(node TerminalNode) interface{} { return nil }
-func (v *BaseParseTreeVisitor) VisitErrorNode(node ErrorNode) interface{}   { return nil }
-*/
 
 var _ GraphQLVisitor = &GraphQLLangVisitor{}
 
@@ -145,7 +137,7 @@ func (v *GraphQLLangVisitor) VisitNullValue(ctx *NullValueContext) interface{} {
 }
 
 func (v *GraphQLLangVisitor) VisitEnumValue(ctx *EnumValueContext) interface{} {
-	return v.Extract(ctx.BaseParserRuleContext, &gqll.EnumValue{Value: v.extractText(ctx)})
+	return v.Extract(ctx.BaseParserRuleContext, &gqll.EnumValue{Value: v.extractText(ctx.Name())})
 }
 
 func (v *GraphQLLangVisitor) VisitListValue(ctx *ListValueContext) interface{} {
@@ -331,11 +323,15 @@ func (v *GraphQLLangVisitor) VisitEnumTypeDefinition(ctx *EnumTypeDefinitionCont
 }
 
 func (v *GraphQLLangVisitor) VisitEnumValuesDefinition(ctx *EnumValuesDefinitionContext) interface{} {
-	return v.VisitChildren(ctx)
+	var arr []*gqll.EnumValueDefinition
+	for _, context := range ctx.AllEnumValueDefinition() {
+		arr = append(arr, v.VisitEnumValueDefinition(context.(*EnumValueDefinitionContext)).(*gqll.EnumValueDefinition))
+	}
+	return arr
 }
 
 func (v *GraphQLLangVisitor) VisitEnumValueDefinition(ctx *EnumValueDefinitionContext) interface{} {
-	return v.Extract(ctx.BaseParserRuleContext, new(gqll.EnumValueDefinition))
+	return v.Extract(ctx.BaseParserRuleContext, &gqll.EnumValueDefinition{Value: ctx.EnumValue().GetText()})
 }
 
 func (v *GraphQLLangVisitor) VisitEnumTypeExtension(ctx *EnumTypeExtensionContext) interface{} {
@@ -384,7 +380,7 @@ func (v *GraphQLLangVisitor) VisitDirectiveLocations(ctx *DirectiveLocationsCont
 }
 
 func (v *GraphQLLangVisitor) Visit(tree antlr.ParseTree) interface{} {
-	logrus.Debug("Visit", reflect.TypeOf(tree))
+	//logrus.Debug("Visit", reflect.TypeOf(tree))
 	if tree == nil {
 		return nil
 	}
@@ -455,6 +451,15 @@ func (v *GraphQLLangVisitor) Extract(ctx *antlr.BaseParserRuleContext, node gqll
 		}
 	}
 	if node, ok := node.(interface {
+		SetInputFieldDefinitions([]*gqll.InputValueDefinition)
+	}); ok {
+		context := ctx.GetTypedRuleContext(reflect.TypeOf((*IInputFieldsDefinitionContext)(nil)).Elem(), 0)
+		val := v.Visit(context)
+		if val != nil {
+			node.SetInputFieldDefinitions(val.([]*gqll.InputValueDefinition))
+		}
+	}
+	if node, ok := node.(interface {
 		SetDefaultValue(gqll.ValueNode)
 	}); ok {
 		context := ctx.GetTypedRuleContext(reflect.TypeOf((*IDefaultValueContext)(nil)).Elem(), 0)
@@ -476,6 +481,15 @@ func (v *GraphQLLangVisitor) Extract(ctx *antlr.BaseParserRuleContext, node gqll
 		val := v.Visit(context)
 		if val != nil {
 			node.SetDirectives(val.([]*gqll.Directive))
+		}
+	}
+	if node, ok := node.(interface {
+		SetEnumValueDefinitions(v []*gqll.EnumValueDefinition)
+	}); ok {
+		context := ctx.GetTypedRuleContext(reflect.TypeOf((*IEnumValuesDefinitionContext)(nil)).Elem(), 0)
+		val := v.Visit(context)
+		if val != nil {
+			node.SetEnumValueDefinitions(val.([]*gqll.EnumValueDefinition))
 		}
 	}
 	if node, ok := node.(interface {

@@ -1,21 +1,23 @@
 package gqll
 
-var _ ValueNode = (*baseValueNode)(nil)
+var _ ValueNode = (*baseValue)(nil)
 
-type baseValueNode struct {
+type baseValue struct {
 	baseNode
-	//Value ValueNode
 }
 
-func (self *baseValueNode) GetValue() interface{} {
+func (self *baseValue) GetValue() interface{} {
 	panic("No value")
 }
-func (self *baseValueNode) IsVariable() bool {
+func (self *baseValue) IsVariable() bool {
 	return false
+}
+func (self *baseValue) IsValue() bool {
+	return true
 }
 
 type IntValue struct {
-	baseValueNode
+	baseValue
 	Value int64
 }
 
@@ -24,7 +26,7 @@ func (self *IntValue) GetValue() interface{} {
 }
 
 type FloatValue struct {
-	baseValueNode
+	baseValue
 	Value float64
 }
 
@@ -33,7 +35,7 @@ func (self *FloatValue) GetValue() interface{} {
 }
 
 type StringValue struct {
-	baseValueNode
+	baseValue
 	Value string
 }
 
@@ -42,7 +44,7 @@ func (self *StringValue) GetValue() interface{} {
 }
 
 type BooleanValue struct {
-	baseValueNode
+	baseValue
 	Value bool
 }
 
@@ -51,7 +53,7 @@ func (self *BooleanValue) GetValue() interface{} {
 }
 
 type NullValue struct {
-	baseValueNode
+	baseValue
 }
 
 func (self *NullValue) GetValue() interface{} {
@@ -59,8 +61,8 @@ func (self *NullValue) GetValue() interface{} {
 }
 
 type EnumValue struct {
-	baseValueNode
-	Value string
+	baseValue
+	Value string // Name of enum
 }
 
 func (self *EnumValue) GetValue() interface{} {
@@ -68,7 +70,7 @@ func (self *EnumValue) GetValue() interface{} {
 }
 
 type ListValue struct {
-	baseValueNode
+	baseValue
 	Value []interface{}
 }
 
@@ -77,7 +79,7 @@ func (self *ListValue) GetValue() interface{} {
 }
 
 type ObjectValue struct {
-	baseValueNode
+	baseValue
 	Value map[string]interface{}
 }
 
@@ -86,7 +88,7 @@ func (self *ObjectValue) GetValue() interface{} {
 }
 
 type Variable struct {
-	baseValueNode
+	baseValue
 	Name  string
 	Value interface{}
 

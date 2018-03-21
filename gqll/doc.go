@@ -1,0 +1,2 @@
+// GraphQL Language
+package gqll

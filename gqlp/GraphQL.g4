@@ -266,7 +266,7 @@ objectTypeExtension
 // Recursion  'implements' _ '&'? _ NamedType / ImplementsInterfaces _ '&' _ NamedType
 implementsInterfaces
   : 'implements' '&'? namedType
-  | implementsInterfaces '&' namedType
+  | implementsInterfaces '&'? namedType
   ;
 
 fieldsDefinition : '{' fieldDefinition+ '}' ;

@@ -1,31 +1,35 @@
 package gqll
 
-type baseTypeNode struct {
+type baseType struct {
 	baseNode
 }
 
-func (self *baseTypeNode) IsNonNull() bool {
+func (self *baseType) IsNonNull() bool {
 	return false
 }
 
-func (self *baseTypeNode) IsNamed() bool {
+func (self *baseType) IsNamed() bool {
 	return false
 }
 
-func (self *baseTypeNode) IsList() bool {
+func (self *baseType) IsList() bool {
 	return false
 }
 
-func (self *baseTypeNode) GetType() TypeNode {
+func (self *baseType) GetType() TypeNode {
 	return nil
 }
 
-func (self *baseTypeNode) GetName() string {
+func (self *baseType) GetName() string {
 	return ""
 }
 
+func (self *baseType) IsType() bool {
+	return true
+}
+
 type NonNullType struct {
-	baseTypeNode
+	baseType
 	Type TypeNode
 }
 
@@ -40,7 +44,7 @@ func (self *NonNullType) IsNonNull() bool {
 }
 
 type ListType struct {
-	baseTypeNode
+	baseType
 	Type TypeNode
 }
 
@@ -55,7 +59,7 @@ func (self *ListType) GetType() TypeNode {
 }
 
 type NamedType struct {
-	baseTypeNode
+	baseType
 	Name string
 }
 

@@ -31,6 +31,10 @@ type baseTypeDefinition struct {
 	hasDirectives
 }
 
+func (baseTypeDefinition) IsTypeDefinition() bool {
+	return true
+}
+
 type ScalarTypeDefinition struct {
 	baseTypeDefinition
 }
@@ -49,6 +53,7 @@ type ObjectTypeDefinition struct {
 }
 type InputObjectTypeDefinition struct {
 	baseTypeDefinition
+	hasInputFieldDefinitions
 }
 type EnumTypeDefinition struct {
 	baseTypeDefinition
@@ -72,6 +77,9 @@ type baseTypeExtension struct {
 	ExtendTypeName string
 }
 
+func (baseTypeExtension) IsbaseTypeExtension() bool {
+	return true
+}
 func (self *baseTypeExtension) GetExtendTypeName() string {
 	return self.ExtendTypeName
 }
@@ -101,6 +109,7 @@ type ObjectTypeExtension struct {
 
 type InputObjectTypeExtension struct {
 	baseTypeExtension
+	hasInputFieldDefinitions
 }
 
 type EnumTypeExtension struct {

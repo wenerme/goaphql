@@ -22,6 +22,11 @@ type Node interface {
 
 	GetComments() []Comment
 	SetComments(comments []Comment)
+
+	//IsTypeDefinition() bool
+	//IsTypeExtension() bool
+	//IsType() bool
+	//IsValue() bool
 }
 
 type SourceLocation struct {
@@ -93,5 +98,5 @@ type EnumValueDefinition struct {
 	baseNode
 	hasDescription
 	hasDirectives
-	hasEnumValue
+	Value string // Enum name
 }
