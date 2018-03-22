@@ -1,6 +1,6 @@
 # GoaphQL
 
-Read in | [中文](./README-zh-CN.md) | [English](./README.md)
+Read in | [中文](./README.zh-CN.md) | [English](./README.md)
 
 
 ## Command Line
@@ -65,3 +65,12 @@ schema Test {
 }
 
 ```
+
+## Roadmap
+
+* [ ] Parse comment
+* [ ] Extract java runtime to [jraphql](https://github.com/wenerme/jraphql)
+* [ ] Implement golang runtime
+* [ ] Implement golang codegen
+* [ ] Implement graphql codegen
+

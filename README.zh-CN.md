@@ -1,6 +1,6 @@
 # GoaphQL
 
-其他语言 | [中文](./README-zh-CN.md) | [English](./README.md)
+其他语言 | [中文](./README.zh-CN.md) | [English](./README.md)
 
 ## 命令行
 
