@@ -29,7 +29,7 @@ var cfgFile string
 var RootCmd = &cobra.Command{
 	Use:   "goaphql",
 	Short: "GraphQL Tools",
-	Long:  `GraphQL parser, validator, target code generator, graphql type generator, schema generator, `,
+	Long:  `GraphQL parser, validator, target code generator, graphql code generator, schema generator.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	//	Run: func(cmd *cobra.Command, args []string) { },

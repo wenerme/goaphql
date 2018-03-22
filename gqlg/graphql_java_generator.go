@@ -3,27 +3,52 @@ package gqlg
 import (
 	"fmt"
 	"github.com/Sirupsen/logrus"
+	"github.com/pkg/errors"
 	"github.com/wenerme/goaphql/gqll"
 	"strings"
 )
 
 type GraphQLJavaGenerator struct {
 	CommonGenerator
-	Config     *JavaGeneratorConfig
-	TypeSystem *gqll.TypeSystem
+	Config *JavaGeneratorConfig
 }
 
 type JavaGeneratorConfig struct {
+	CommonGeneratorConfig
+	TypeSystem     *gqll.TypeSystem
+	SchemaName     string
 	JavaPackage    string
 	ImportPackages []string
 	JavaTypeMap    map[string]string
+}
+
+func NewGraphQLJavaGenerator(config JavaGeneratorConfig) (*GraphQLJavaGenerator, error) {
+	conf := &config
+	if config.TypeSystem == nil {
+		return nil, errors.New("gqlg: generator need TypeSystem")
+	}
+
+	g := &GraphQLJavaGenerator{
+		Config: conf,
+	}
+	err := g.config(conf.CommonGeneratorConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	g.TypeSystem = config.TypeSystem
+	g.Template.Funcs(g.FuncMap(nil))
+	g.ScanTemplate()
+	return g, nil
 }
 
 func (self *GraphQLJavaGenerator) FuncMap(m map[string]interface{}) map[string]interface{} {
 	if m == nil {
 		m = make(map[string]interface{})
 	}
+	m = self.CommonGenerator.FuncMap(m)
 	for k, v := range map[string]interface{}{
+		"Config":          func() interface{} { return self.Config },
 		"GenJavaType":     self.GenJavaType,
 		"GenJavaTypeName": self.GenJavaTypeName,
 		"GenJavaTypeNames": func(a []string) []string {
@@ -34,9 +59,6 @@ func (self *GraphQLJavaGenerator) FuncMap(m map[string]interface{}) map[string]i
 			return s
 		},
 		"GenJavaValue": self.GenJavaValue,
-		"Config":       func() interface{} { return self.Config },
-		"ToUpperCamel": func(s string) string { return strings.Title(s) },
-		"Join":         func(a []string, seq string) string { return strings.Join(a, seq) },
 	} {
 		m[k] = v
 	}
@@ -95,7 +117,12 @@ func (self *GraphQLJavaGenerator) GenJavaType(v interface{}) string {
 	}
 	return ""
 }
+
+// Map a name for Java
 func (self *GraphQLJavaGenerator) GenJavaTypeName(name string) string {
+	if name, ok := self.Config.JavaTypeMap[name]; ok {
+		return name
+	}
 	switch name {
 	case "ID":
 		return "String"
@@ -105,8 +132,6 @@ func (self *GraphQLJavaGenerator) GenJavaTypeName(name string) string {
 		return "Integer"
 	case "Boolean":
 		return "Boolean"
-	case "DateTime":
-		return "Date"
 	}
 	def := self.TypeSystem.GetNamedDefinition(name)
 	if def == nil {
@@ -119,4 +144,42 @@ func (self *GraphQLJavaGenerator) GenJavaTypeName(name string) string {
 		return strings.Title(name) + "Resolver"
 	}
 	return name
+}
+
+func (self *GraphQLJavaGenerator) GenerateGraphQLJava() (err error) {
+	// Generate type
+	for _, v := range self.TypeSystem.GetDefinitions() {
+		typeName := gqll.TypeOf(v).Name()
+		if !strings.HasSuffix(typeName, "TypeDefinition") {
+			continue
+		}
+		tags := []string{typeName[:len(typeName)-len("TypeDefinition")]}
+		files := self.SelectTemplateFileByTags(tags...)
+
+		if len(files) == 0 {
+			continue
+		}
+
+		logrus.WithFields(logrus.Fields{
+			"Type":  typeName,
+			"Name":  gqll.NameOf(v),
+			"Count": len(files),
+		}).Info("Generate type definition")
+
+		for _, f := range files {
+			if err = self.Generate(f, v); err != nil {
+				return
+			}
+		}
+	}
+
+	// Generate common
+	files := self.SelectTemplateFileByTags("Java")
+	for _, f := range files {
+		if err = self.Generate(f, self.TypeSystem); err != nil {
+			return
+		}
+	}
+
+	return nil
 }

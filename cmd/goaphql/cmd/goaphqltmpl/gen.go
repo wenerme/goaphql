@@ -1,0 +1,3 @@
+package goaphqltmpl
+
+//go:generate go-bindata -pkg goaphqltmpl -ignore ignored -ignore .DS_Store -prefix ../../../../gqlg/ -o gen-tmpl.go ../../../../gqlg/tmpl/...

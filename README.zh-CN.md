@@ -1,52 +1,52 @@
 # GoaphQL
 
-Read in | [中文](./README-zh-CN.md) | [English](./README.md)
+其他语言 | [中文](./README-zh-CN.md) | [English](./README.md)
 
-
-## Command Line
+## 命令行
 
 ```bash
-# Installation
+# 安装
 go get -u -v github.com/wenerme/goaphql/cmd/goaphql
 ```
 
-### Generator
+
+### 生成器
 
 ```bash
-# Generate
-# Package com.github
-# Name Github
+# 生成
+# 包名 com.github
+# Schema 名 Github
 goaphql generate graphql-java -s github.graphqls -p com.github -n GitHub
-# same
+# 缩写
 goaphql g gj -s github.graphqls -p com.github -n GitHub
 
-# Customization
-# Dump templates
+# 模板定制化
+# 导出模板
 goaphql g dump -t tmpl/graphql-java --prefix tmpl/graphql-java -d ./tpl
-# Modify templats
-# Add package-info.java
+# 修改模板
+# 添加 package-info.java
 echo -e 'package {{Config.JavaPackage}};' > './tpl/Java#package-info.java.tmpl'
-# Generate using modified templates
+# 使用修改后的目标进行生成
 goaphql generate graphql-java -t ./tpl -s github.graphqls -p com.github -n GitHub
-# Check the new file
-cat out/me/wener/package-info.java
+# 查看新添加模板生成的文件
+cat out/com/github/package-info.java
 ```
 
-## Inside
+## 内容
 
-Package | Description
+包 | 描述
 --------|------------
-gqlp    | GraphQL Parser
-gqll    | GraphQL Language representation
-gqlg    | GraphQL Code generator
-cmd/goaphql | Command line tool
+gqlp    | 解析器
+gqll    | 语言结构
+gqlg    | 代码生成器
+cmd/goaphql | 命令行工具
 
-## GraphQL Language Extension
+## GraphQL 语言扩展
 
 * Antlr Grammar [GraphQL.g4](https://github.com/wenerme/wener/blob/master/tricks/languages/antlr/GraphQL.g4)
 
 ```graphqls
-# 1. extend by name syntax
+# 1. extend by name 语法
 
 type MyQuery {
   myUser(id:ID!):MyUser
@@ -54,14 +54,13 @@ type MyQuery {
 
 extend Query by MyQuery
 
-# 2. Allowed directives on directive definition, add DIRECTIVE_DEFINITION location
+# 2. 允许在定义指令时添加指令, 添加 DIRECTIVE_DEFINITION 指令位置
 
 directive @JavaType(type:String) on DIRECTIVE_DEFINITION
 directive @Auth(value:String) @JavaType(type:"Auth") on FIELD_DEFINITION;
 
-# 3. Allowed schema has optional name
+# 3. 允许 schema 指定名字
 schema Test {
   query: MyQuery
 }
-
 ```
