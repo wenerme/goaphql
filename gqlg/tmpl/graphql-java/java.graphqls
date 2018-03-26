@@ -1,0 +1,15 @@
+
+# Directive for goaphql internal use
+directive @goaphql(builtin: Boolean) @goaphql(builtin: true) on SCALAR | ENUM | DIRECTIVE
+
+# Annotate a type as a Java type
+#
+# Examples
+#
+# enum Gender @JavaType(pkg:"me.wener.common") { MAN WOMAN }
+# scalar DateTime @JavaType(type: "Date")
+#
+# pkg Package for this type
+# type Type name will used for generated type
+directive @JavaType(package: String, type: String) @goaphql(builtin: true)  on SCALAR | OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT | DIRECTIVE
+

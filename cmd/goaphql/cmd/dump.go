@@ -29,19 +29,21 @@ import (
 var dumpConf = &_dumpConf{}
 
 type _dumpConf struct {
-	ListOnly bool
-	Prefix   string
+	ListOnly    bool
+	Prefix      string
+	Matches     []string
+	Destination string
 }
 
 // dumpCmd represents the dump command
 var dumpCmd = &cobra.Command{
 	Use:   "dump",
-	Short: "Dump binded template",
-	Long:  `Dump template to local for easy to modify and test`,
+	Short: "Dump binded assets",
+	Long:  `Dump assets to local for easy to modify and test`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if dumpConf.ListOnly {
-			if len(generateConf.Templates) > 0 {
-				match := generateConf.Templates[0]
+			if len(dumpConf.Matches) > 0 {
+				match := dumpConf.Matches[0]
 				for _, n := range goaphqltmpl.AssetNames() {
 					if matchAsset(match, n) {
 						fmt.Println(n)
@@ -58,8 +60,8 @@ var dumpCmd = &cobra.Command{
 
 		files := make(map[string][]byte)
 
-		if len(generateConf.Templates) > 0 {
-			match := generateConf.Templates[0]
+		if len(dumpConf.Matches) > 0 {
+			match := dumpConf.Matches[0]
 			for _, n := range goaphqltmpl.AssetNames() {
 				if matchAsset(match, n) {
 					files[n] = goaphqltmpl.MustAsset(n)
@@ -68,7 +70,7 @@ var dumpCmd = &cobra.Command{
 		}
 
 		for k, v := range files {
-			fn := filepath.Join(generateConf.Destination, strings.TrimLeft(k, dumpConf.Prefix))
+			fn := filepath.Join(dumpConf.Destination, strings.TrimLeft(k, dumpConf.Prefix))
 			dir := filepath.Dir(fn)
 			if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 				logrus.WithError(err).WithField("Dir", dir).Fatal("failed to make dir")
@@ -91,17 +93,9 @@ func matchAsset(p string, n string) bool {
 }
 
 func init() {
-	genCmd.AddCommand(dumpCmd)
-	dumpCmd.Flags().BoolVarP(&dumpConf.ListOnly, "list-only", "l", false, "List all assets and exit")
+	RootCmd.AddCommand(dumpCmd)
+	dumpCmd.Flags().BoolVarP(&dumpConf.ListOnly, "list", "l", false, "List all assets and exit")
 	dumpCmd.Flags().StringVarP(&dumpConf.Prefix, "prefix", "p", "", "Prefix to trim")
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// dumpCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// dumpCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	dumpCmd.Flags().StringVarP(&dumpConf.Destination, "dest", "d", "", "Output dir")
+	dumpCmd.Flags().StringSliceVarP(&dumpConf.Matches, "match", "m", nil, "Matches")
 }

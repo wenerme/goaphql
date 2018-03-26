@@ -2,6 +2,7 @@ package gqll
 
 import (
 	"reflect"
+	"strings"
 )
 
 var registryNameMap = make(map[string]*registryEntry)
@@ -48,6 +49,16 @@ type TypeEntry interface {
 	Name() string
 	// Struct type
 	Type() reflect.Type
+
+	IsTypeDefinition() bool
+	IsTypeExtension() bool
+}
+
+func (self *registryEntry) IsTypeDefinition() bool {
+	return strings.HasSuffix(self.name, "TypeDefinition")
+}
+func (self *registryEntry) IsTypeExtension() bool {
+	return strings.HasSuffix(self.name, "TypeExtension")
 }
 
 func init() {

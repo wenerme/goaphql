@@ -72,9 +72,9 @@ type DirectiveDefinition struct {
 
 type baseTypeExtension struct {
 	baseNode
-	hasName
+	hasName // Name of this extension
 	hasDirectives
-	ExtendTypeName string
+	ExtendTypeName string // Name of the extended tyoe
 }
 
 func (baseTypeExtension) IsbaseTypeExtension() bool {

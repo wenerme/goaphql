@@ -32,6 +32,17 @@ func (self *hasName) GetName() string {
 	return self.Name
 }
 
+type hasExtendTypeName struct {
+	ExtendTypeName string
+}
+
+func (self *hasExtendTypeName) SetExtendTypeName(v string) {
+	self.ExtendTypeName = v
+}
+func (self *hasExtendTypeName) GetExtendTypeName() string {
+	return self.ExtendTypeName
+}
+
 type hasEnumValueDefinitions struct {
 	EnumValueDefinitions []*EnumValueDefinition
 }
@@ -63,6 +74,14 @@ func (self *hasDirectives) SetDirectives(v []*Directive) {
 }
 func (self *hasDirectives) GetDirectives() []*Directive {
 	return self.Directives
+}
+func (self *hasDirectives) GetDirective(name string) *Directive {
+	for _, v := range self.Directives {
+		if v.Name == name {
+			return v
+		}
+	}
+	return nil
 }
 
 type hasArgumentDefinitions struct {
@@ -108,15 +127,23 @@ func (self *hasArguments) SetArguments(v []*Argument) {
 func (self *hasArguments) GetArguments() []*Argument {
 	return self.Arguments
 }
-
-type hasValueNode struct {
-	Value ValueNode
+func (self *hasArguments) GetArgument(name string) *Argument {
+	for _, v := range self.Arguments {
+		if v.Name == name {
+			return v
+		}
+	}
+	return nil
 }
 
-func (self *hasValueNode) SetValue(v ValueNode) {
+type hasValue struct {
+	Value Value
+}
+
+func (self *hasValue) SetValue(v Value) {
 	self.Value = v
 }
-func (self *hasValueNode) GetValue() ValueNode {
+func (self *hasValue) GetValue() Value {
 	return self.Value
 }
 
@@ -143,13 +170,13 @@ func (self *hasUnionMemberTypes) GetUnionMemberTypes() []string {
 }
 
 type hasDefaultValue struct {
-	DefaultValue []ValueNode
+	DefaultValue []Value
 }
 
-func (self *hasDefaultValue) SetDefaultValue(v []ValueNode) {
+func (self *hasDefaultValue) SetDefaultValue(v []Value) {
 	self.DefaultValue = v
 }
-func (self *hasDefaultValue) GetDefaultValue() []ValueNode {
+func (self *hasDefaultValue) GetDefaultValue() []Value {
 	return self.DefaultValue
 }
 
@@ -165,13 +192,13 @@ func (self *hasDescription) GetDescription() string {
 }
 
 type hasType struct {
-	Type TypeNode
+	Type Type
 }
 
-func (self *hasType) SetType(v TypeNode) {
+func (self *hasType) SetType(v Type) {
 	self.Type = v
 }
-func (self *hasType) GetType() TypeNode {
+func (self *hasType) GetType() Type {
 	return self.Type
 }
 
@@ -197,37 +224,50 @@ func (self *hasVariableDefinitions) SetVariableDefinitions(v []*VariableDefiniti
 	self.VariableDefinitions = v
 }
 
-type featName interface {
+type HasName interface {
 	SetName(v string)
 	GetName() string
 }
 
-type featEnumValueDefinitions interface {
+// The extended type name
+type HasExtendTypeName interface {
+	SetExtendTypeName(v string)
+	GetExtendTypeName() string
+}
+
+type HasEnumValueDefinitions interface {
 	SetEnumValueDefinitions(v []*EnumValueDefinition)
 	GetEnumValueDefinitions() []*EnumValueDefinition
 }
 
-type featDirectives interface {
+type HasDirectives interface {
 	SetDirectives(v []*Directive)
 	GetDirectives() []*Directive
+	GetDirective(name string) *Directive
 }
 
-type featArgumentDefinitions interface {
+type HasArguments interface {
+	SetArguments(v []*Argument)
+	GetArguments() []*Argument
+	GetArgument(name string) *Argument
+}
+
+type HasArgumentDefinitions interface {
 	SetArgumentDefinitions(v []*InputValueDefinition)
 	GetArgumentDefinitions() []*InputValueDefinition
 }
 
-type featInputFieldDefinitions interface {
+type HasInputFieldDefinitions interface {
 	SetInputFieldDefinitions(v []*InputValueDefinition)
 	GetInputFieldDefinitions() []*InputValueDefinition
 }
 
-type featFieldDefinitions interface {
+type HasFieldDefinitions interface {
 	SetFieldDefinitions(v []*FieldDefinition)
 	GetFieldDefinitions() []*FieldDefinition
 }
 
-type featInterfaces interface {
+type HasInterfaces interface {
 	SetInterfaces(v []string)
 	GetInterfaces() []string
 }

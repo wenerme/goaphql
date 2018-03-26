@@ -35,6 +35,7 @@ type _generateGJConf struct {
 	JavaTypeMap    map[string]string
 	JavaTypeMaps   []string
 	SchemaName     string
+	Tags           []string
 }
 
 // genGjCmd represents the genGj command
@@ -51,22 +52,49 @@ var genGJCmd = &cobra.Command{
 			JavaTypeMap:    generateGJConf.JavaTypeMap,
 			SchemaName:     generateGJConf.SchemaName,
 		}
+		var definitions []gqll.Definition
+		var includes []gqll.Definition
+		var err error
+		for _, schema := range generateConf.Schemas {
+			logrus := logrus.WithField("Schema", schema)
 
-		if len(generateConf.Schemas) > 0 {
-			bytes, err := ioutil.ReadFile(generateConf.Schemas[0])
+			bytes, err := ioutil.ReadFile(schema)
 			if err != nil {
-				logrus.WithError(err).Fatal("failed to open schema")
+				logrus.WithError(err).Fatal("open schema")
 			}
 			if doc, err := gqlp.ParseContent(string(bytes)); err != nil {
-				logrus.WithError(err).Fatal("failed parse schema")
+				logrus.WithError(err).Fatal("parse schema")
 			} else {
-				config.TypeSystem, err = gqll.NewTypeSystem(doc)
-				if err != nil {
-					logrus.WithError(err).Fatal("failed to build type system")
-				}
+				logrus.WithField("Definitions", len(doc.Definitions)).Debug("parse schema")
+				definitions = append(definitions, doc.Definitions...)
 			}
-		} else {
-			logrus.Fatal("no schema")
+		}
+
+		for _, schema := range generateConf.Includes {
+			logrus := logrus.WithField("Include", schema)
+
+			bytes, err := ioutil.ReadFile(schema)
+			if err != nil {
+				logrus.WithError(err).Fatal("open include schema")
+			}
+			if doc, err := gqlp.ParseContent(string(bytes)); err != nil {
+				logrus.WithError(err).Fatal("parse include schema")
+			} else {
+				logrus.WithField("Definitions", len(doc.Definitions)).Debug("parse schema")
+				includes = append(includes, doc.Definitions...)
+			}
+		}
+
+		for _, v := range includes {
+			if gqll.TypeOf(v).IsTypeDefinition() {
+				config.Ignores = append(config.Ignores, gqll.NameOf(v))
+			}
+		}
+
+		// build type system
+		definitions = append(definitions, includes...)
+		if config.TypeSystem, err = gqll.NewTypeSystem(definitions); err != nil {
+			logrus.WithError(err).Fatal("failed to build type system")
 		}
 
 		g, err := gqlg.NewGraphQLJavaGenerator(config)
@@ -103,35 +131,40 @@ var genGJCmd = &cobra.Command{
 				}
 			}
 		}
-		if err = g.ScanTemplate(); err != nil {
-			logrus.WithError(err).Fatal("failed to scan template file")
-		}
 
 		if err := g.GenerateGraphQLJava(); err != nil {
 			logrus.WithError(err).Fatal("failed generate code")
 		}
 
 		for _, v := range g.Files {
-			fn := filepath.Join(generateConf.Destination, strings.Replace(g.Config.JavaPackage, ".", "/", -1), v.Name)
+			var pkg string
+			if v, ok := v.(*gqlg.GenerateJavaFile); ok {
+				pkg = v.JavaPackage
+			}
+			fn := filepath.Join(generateConf.Destination, strings.Replace(pkg, ".", "/", -1), v.Name())
 			dir := filepath.Dir(fn)
 			if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 				logrus.WithError(err).WithField("Dir", dir).Fatal("failed to make dir")
 			}
-			if err := ioutil.WriteFile(fn, v.Buf.Bytes(), os.ModePerm); err != nil {
+			if err := ioutil.WriteFile(fn, v.Buf().Bytes(), os.ModePerm); err != nil {
 				logrus.WithError(err).WithField("File", fn).Fatal("failed to write file")
 			}
 			logrus.WithField("File", fn).Info("write file")
 		}
-
 	},
 }
 
 func init() {
 	genCmd.AddCommand(genGJCmd)
 
-	genGJCmd.PersistentFlags().StringVarP(&generateGJConf.JavaPackage, "java-package", "p", "", "Target java package")
-	genGJCmd.PersistentFlags().StringSliceVarP(&generateGJConf.ImportPackages, "java-import", "i", nil, "Extra imports")
-	genGJCmd.PersistentFlags().StringSliceVarP(&generateGJConf.JavaTypeMaps, "java-type", "m", nil, "Type mapping")
-	genGJCmd.PersistentFlags().StringVarP(&generateGJConf.SchemaName, "schema-name", "n", "", "Schema name")
+	genGJCmd.PersistentFlags().StringVarP(&generateGJConf.JavaPackage, "package", "P", "", "Target java package")
+	genGJCmd.PersistentFlags().StringSliceVarP(&generateGJConf.ImportPackages, "import", "I", nil, "Extra imports")
+	genGJCmd.PersistentFlags().StringSliceVarP(&generateGJConf.JavaTypeMaps, "type-map", "M", nil, "Type mapping")
+	genGJCmd.PersistentFlags().StringVarP(&generateGJConf.SchemaName, "schema-name", "N", "", "Schema name")
+	genGJCmd.PersistentFlags().StringSliceVarP(&generateGJConf.Tags, "tag", "T", nil, "Select tag [WIP]")
 
+	genGJCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
+		generateGJConf.JavaTypeMap = sliceToMap(generateGJConf.JavaTypeMaps)
+		return nil
+	}
 }

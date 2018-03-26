@@ -16,7 +16,7 @@ func (self *baseType) IsList() bool {
 	return false
 }
 
-func (self *baseType) GetType() TypeNode {
+func (self *baseType) GetType() Type {
 	return nil
 }
 
@@ -30,13 +30,13 @@ func (self *baseType) IsType() bool {
 
 type NonNullType struct {
 	baseType
-	Type TypeNode
+	Type Type
 }
 
-func (self *NonNullType) SetType(node TypeNode) {
+func (self *NonNullType) SetType(node Type) {
 	self.Type = node
 }
-func (self *NonNullType) GetType() TypeNode {
+func (self *NonNullType) GetType() Type {
 	return self.Type
 }
 func (self *NonNullType) IsNonNull() bool {
@@ -45,16 +45,16 @@ func (self *NonNullType) IsNonNull() bool {
 
 type ListType struct {
 	baseType
-	Type TypeNode
+	Type Type
 }
 
 func (self *ListType) IsList() bool {
 	return true
 }
-func (self *ListType) SetType(node TypeNode) {
+func (self *ListType) SetType(node Type) {
 	self.Type = node
 }
-func (self *ListType) GetType() TypeNode {
+func (self *ListType) GetType() Type {
 	return self.Type
 }
 

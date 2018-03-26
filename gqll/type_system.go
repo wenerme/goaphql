@@ -1,6 +1,7 @@
 package gqll
 
 import (
+	"github.com/Sirupsen/logrus"
 	"github.com/pkg/errors"
 	"strings"
 )
@@ -21,18 +22,21 @@ func (self *TypeSystem) GetDefinitions() []Definition {
 	return self.definitions
 }
 
-func NewTypeSystem(doc *Document) (*TypeSystem, error) {
+func NewTypeSystem(defs []Definition) (*TypeSystem, error) {
 	ts := &TypeSystem{
 		nameMap: make(map[string]Definition),
 		typeMap: make(map[string][]Definition),
 	}
 	namesMap := make(map[string][]Definition)
 
-	for _, v := range doc.Definitions {
+	for _, v := range defs {
 		// name index
-		if vn, ok := v.(interface {
-			GetName() string
-		}); ok {
+		// for extension
+		//if vn, ok := v.(HasExtendTypeName); ok {
+		//	name := vn.GetExtendTypeName()
+		//	namesMap[name] = append(namesMap[name], v)
+		//} else
+		if vn, ok := v.(HasName); ok {
 			name := vn.GetName()
 			namesMap[name] = append(namesMap[name], v)
 		}
@@ -43,7 +47,6 @@ func NewTypeSystem(doc *Document) (*TypeSystem, error) {
 		ts.definitions = append(ts.definitions, v)
 	}
 
-	var err error
 	// aggregate
 	for k, v := range namesMap {
 		if k == "" || len(v) == 0 {
@@ -52,10 +55,22 @@ func NewTypeSystem(doc *Document) (*TypeSystem, error) {
 		if len(v) == 1 {
 			ts.nameMap[k] = v[0]
 		} else {
-			ts.nameMap[k], err = MergeDefinitions(v)
-			if err != nil {
-				return nil, err
+			// Doto merge
+			//ts.nameMap[k], err = MergeDefinitions(v)
+			//if err != nil {
+			//	return nil, err
+			//}
+
+			var target Definition
+			for _, d := range v {
+				if TypeOf(d).IsTypeDefinition() {
+					if target != nil {
+						return nil, errors.Errorf("multi definition for %s", NameOf(d))
+					}
+					target = d
+				}
 			}
+			ts.nameMap[k] = target
 		}
 	}
 
@@ -72,7 +87,13 @@ func MergeDefinitions(definitions []Definition) (Definition, error) {
 		}
 	}
 	if target == nil {
-		return nil, errors.New("gqll: merge target not found")
+		for _, v := range definitions {
+			logrus.WithFields(logrus.Fields{
+				"Name": NameOf(v),
+				"Type": TypeOf(definitions[0]).Name(),
+			}).Warn("Error report")
+		}
+		return nil, errors.Errorf("gqll: merge target not found")
 	}
 	for i, v := range definitions {
 		if i == targetIdx {
@@ -86,22 +107,22 @@ func MergeDefinitions(definitions []Definition) (Definition, error) {
 
 func MergeDefinition(target Definition, ext Definition) error {
 
-	if feat, ok := target.(featFieldDefinitions); ok {
+	if feat, ok := target.(HasFieldDefinitions); ok {
 		origin := feat.GetFieldDefinitions()
-		extra := ext.(featFieldDefinitions).GetFieldDefinitions()
+		extra := ext.(HasFieldDefinitions).GetFieldDefinitions()
 
 		feat.SetFieldDefinitions(append(origin, extra...))
 	}
-	if feat, ok := target.(featInterfaces); ok {
+	if feat, ok := target.(HasInterfaces); ok {
 		origin := feat.GetInterfaces()
-		extra := ext.(featInterfaces).GetInterfaces()
+		extra := ext.(HasInterfaces).GetInterfaces()
 
 		feat.SetInterfaces(append(origin, extra...))
 	}
 
-	if feat, ok := target.(featDirectives); ok {
+	if feat, ok := target.(HasDirectives); ok {
 		origin := feat.GetDirectives()
-		extra := ext.(featDirectives).GetDirectives()
+		extra := ext.(HasDirectives).GetDirectives()
 
 		feat.SetDirectives(append(origin, extra...))
 	}

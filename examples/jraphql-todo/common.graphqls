@@ -1,0 +1,17 @@
+scalar ID @JavaType(type:"String")
+scalar Int @JavaType(type:"Integer")
+scalar String @JavaType(type:"String")
+
+scalar DateTime @JavaType(type:"Date")
+scalar HTML @JavaType(type:"String")
+scalar URL @JavaType(type:"java.net.URL")
+scalar URI @JavaType(type:"java.net.URI")
+
+interface Node {
+    id: ID!
+}
+
+type NodeQuery {
+    node(id: ID!): Node
+    nodes(ids: [ID!]!): [Node]!
+}

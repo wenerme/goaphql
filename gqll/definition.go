@@ -32,6 +32,7 @@ type Node interface {
 type SourceLocation struct {
 	Line   int
 	Column int
+	Source string
 }
 
 type Comment struct {
@@ -39,16 +40,16 @@ type Comment struct {
 	baseNode
 }
 
-type TypeNode interface {
+type Type interface {
 	Node
 	IsNonNull() bool
 	IsNamed() bool
 	IsList() bool
 
-	GetType() TypeNode
+	GetType() Type
 	GetName() string
 }
-type ValueNode interface {
+type Value interface {
 	Node
 	GetValue() interface{}
 	// TODO Add resolved value
@@ -63,7 +64,7 @@ type Document struct {
 type Argument struct {
 	baseNode
 	hasName
-	hasValueNode
+	hasValue
 }
 
 type Directive struct {

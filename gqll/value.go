@@ -1,6 +1,6 @@
 package gqll
 
-var _ ValueNode = (*baseValue)(nil)
+var _ Value = (*baseValue)(nil)
 
 type baseValue struct {
 	baseNode
@@ -109,13 +109,13 @@ func (self *Variable) IsVariable() bool {
 	return true
 }
 
-func IsValueResolved(node ValueNode) bool {
+func IsValueResolved(node Value) bool {
 	switch node := node.(type) {
 	case *Variable:
 		return node.resolved
 	case *ListValue:
 		for _, v := range node.Value {
-			if v, ok := v.(ValueNode); ok {
+			if v, ok := v.(Value); ok {
 				if !IsValueResolved(v) {
 					return false
 				}
@@ -123,7 +123,7 @@ func IsValueResolved(node ValueNode) bool {
 		}
 	case *ObjectValue:
 		for _, v := range node.Value {
-			if v, ok := v.(ValueNode); ok {
+			if v, ok := v.(Value); ok {
 				if !IsValueResolved(v) {
 					return false
 				}
@@ -134,19 +134,19 @@ func IsValueResolved(node ValueNode) bool {
 	return true
 }
 
-func CollectVariables(node ValueNode, vars *[]*Variable) {
+func CollectVariables(node Value, vars *[]*Variable) {
 	switch node := node.(type) {
 	case *Variable:
 		*vars = append(*vars, node)
 	case *ListValue:
 		for _, v := range node.Value {
-			if v, ok := v.(ValueNode); ok {
+			if v, ok := v.(Value); ok {
 				CollectVariables(v, vars)
 			}
 		}
 	case *ObjectValue:
 		for _, v := range node.Value {
-			if v, ok := v.(ValueNode); ok {
+			if v, ok := v.(Value); ok {
 				CollectVariables(v, vars)
 			}
 		}

@@ -1,6 +1,7 @@
 package gqlp
 
 import (
+	"github.com/Sirupsen/logrus"
 	"github.com/antlr/antlr4/runtime/Go/antlr"
 	"github.com/wenerme/goaphql/gqll"
 	"reflect"
@@ -17,6 +18,7 @@ func NewGraphQLLangVisitor() *GraphQLLangVisitor {
 
 type GraphQLLangVisitor struct {
 	antlr.ParseTreeVisitor
+	Source string
 }
 
 func (v *GraphQLLangVisitor) VisitGraphql(ctx *GraphqlContext) interface{} {
@@ -408,9 +410,9 @@ func (v *GraphQLLangVisitor) VisitNonNullType(ctx *NonNullTypeContext) interface
 	node := &gqll.NonNullType{}
 	v.Extract(ctx.BaseParserRuleContext, node)
 	if ctx.NamedType() != nil {
-		node.Type = v.VisitNamedType(ctx.NamedType().(*NamedTypeContext)).(gqll.TypeNode)
+		node.Type = v.VisitNamedType(ctx.NamedType().(*NamedTypeContext)).(gqll.Type)
 	} else {
-		node.Type = v.VisitListType(ctx.ListType().(*ListTypeContext)).(gqll.TypeNode)
+		node.Type = v.VisitListType(ctx.ListType().(*ListTypeContext)).(gqll.Type)
 	}
 	return node
 }
@@ -429,6 +431,7 @@ func (v *GraphQLLangVisitor) Extract(ctx *antlr.BaseParserRuleContext, node gqll
 	node.SetSourceLocation(&gqll.SourceLocation{
 		Line:   ctx.GetStart().GetLine(),
 		Column: ctx.GetStart().GetColumn(),
+		Source: v.Source,
 	})
 	// TODO comments
 
@@ -460,12 +463,12 @@ func (v *GraphQLLangVisitor) Extract(ctx *antlr.BaseParserRuleContext, node gqll
 		}
 	}
 	if node, ok := node.(interface {
-		SetDefaultValue(gqll.ValueNode)
+		SetDefaultValue(gqll.Value)
 	}); ok {
 		context := ctx.GetTypedRuleContext(reflect.TypeOf((*IDefaultValueContext)(nil)).Elem(), 0)
 		val := v.Visit(context)
 		if val != nil {
-			node.SetDefaultValue(val.(gqll.ValueNode))
+			node.SetDefaultValue(val.(gqll.Value))
 		}
 	}
 	if node, ok := node.(interface {
@@ -492,12 +495,6 @@ func (v *GraphQLLangVisitor) Extract(ctx *antlr.BaseParserRuleContext, node gqll
 			node.SetEnumValueDefinitions(val.([]*gqll.EnumValueDefinition))
 		}
 	}
-	if node, ok := node.(interface {
-		SetExtendTypeName(string)
-	}); ok {
-		context := ctx.GetTypedRuleContext(reflect.TypeOf((*INameContext)(nil)).Elem(), 1)
-		node.SetExtendTypeName(v.extractText(context))
-	}
 
 	if node, ok := node.(interface {
 		SetFieldDefinitions([]*gqll.FieldDefinition)
@@ -517,19 +514,32 @@ func (v *GraphQLLangVisitor) Extract(ctx *antlr.BaseParserRuleContext, node gqll
 			node.SetInterfaces(val.([]string))
 		}
 	}
-	if node, ok := node.(interface {
-		SetName(string)
-	}); ok {
+	if node, ok := node.(gqll.HasName); ok {
 		context := ctx.GetTypedRuleContext(reflect.TypeOf((*INameContext)(nil)).Elem(), 0)
 		node.SetName(v.extractText(context))
 	}
+	// Must after name
+	if node, ok := node.(gqll.HasExtendTypeName); ok {
+		context := ctx.GetTypedRuleContext(reflect.TypeOf((*INameContext)(nil)).Elem(), 1)
+		extendName := v.extractText(context)
 
+		// This is the name of the extension
+		nameNode := node.(gqll.HasName)
+		logrus.Info("Extension ", nameNode.GetName())
+		// implicit name of this extension
+		if extendName == "" {
+			extendName = nameNode.GetName() + "Extension"
+		}
+		node.SetExtendTypeName(nameNode.GetName())
+		nameNode.SetName(extendName)
+
+	}
 	if node, ok := node.(interface {
-		SetType(gqll.TypeNode)
+		SetType(gqll.Type)
 	}); ok {
 		v := v.Visit(ctx.GetTypedRuleContext(reflect.TypeOf((*ITypeSpecContext)(nil)).Elem(), 0))
 		if v != nil {
-			node.SetType(v.(gqll.TypeNode))
+			node.SetType(v.(gqll.Type))
 		}
 	}
 	if node, ok := node.(interface {
@@ -541,11 +551,11 @@ func (v *GraphQLLangVisitor) Extract(ctx *antlr.BaseParserRuleContext, node gqll
 		}
 	}
 	if node, ok := node.(interface {
-		SetValue(gqll.ValueNode)
+		SetValue(gqll.Value)
 	}); ok {
 		v := v.Visit(ctx.GetTypedRuleContext(reflect.TypeOf((*IValueContext)(nil)).Elem(), 0))
 		if v != nil {
-			node.SetValue(v.(gqll.ValueNode))
+			node.SetValue(v.(gqll.Value))
 		}
 	}
 	return node

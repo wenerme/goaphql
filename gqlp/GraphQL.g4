@@ -357,7 +357,7 @@ TypeSystemDirectiveLocation
   | 'ENUM_VALUE'
   | 'INPUT_OBJECT'
   | 'INPUT_FIELD_DEFINITION'
-  | 'DIRECTIVE_DEFINITION' // extension
+  | 'DIRECTIVE' // extension
   ;
 
 // Must in the last

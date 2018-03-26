@@ -7,7 +7,7 @@ import com.google.common.base.Preconditions;
 public interface {{Config.SchemaName}}SchemaStub {
 
     @lombok.extern.slf4j.Slf4j
-    public class WiringFactoryStub implements WiringFactory {
+    public class WiringFactoryStub extends AbstractWiringFactory {
 
     @Override
     public DataFetcher getDefaultDataFetcher(FieldWiringEnvironment environment) {
@@ -15,8 +15,10 @@ public interface {{Config.SchemaName}}SchemaStub {
         switch (name) {
     {{range .GetDefinitions -}}
     {{if eq (TypeNameOf .) "ObjectTypeDefinition" -}}
+    {{if not (IsSkipped .) -}}
         case "{{.Name}}":
             return this::fetch{{.Name}};
+    {{- end}}
     {{- end}}
     {{- end}}
         default:
@@ -28,6 +30,7 @@ public interface {{Config.SchemaName}}SchemaStub {
 
     {{range .GetDefinitions -}}
     {{if eq (TypeNameOf .) "ObjectTypeDefinition" -}}
+    {{if not (IsSkipped .) -}}
     {{- $def := . -}}
         public Object fetch{{.Name}}(DataFetchingEnvironment environment) {
 
@@ -51,46 +54,6 @@ public interface {{Config.SchemaName}}SchemaStub {
         }
     {{- end}}
     {{- end}}
-
-        @SneakyThrows
-        public <IN, OUT> ValueResolver<IN, OUT> buildValueResolver(
-            ValueResolverImpl<IN, OUT> resolver,
-            DataFetchingEnvironment environment
-        ) {
-            IN argument = null;
-
-            if (resolver.getArgumentType().getRawType() != Void.class) {
-            argument = (IN) resolver.getArgumentType().getRawType().newInstance();
-            BeanCopy.fromMap(environment.getArguments()).toBean(argument).copy();
-            }
-
-            resolver
-                .setArgument(argument)
-                .setTypeName(environment.getFieldDefinition().getType().getName())
-                .setFieldName(environment.getFieldDefinition().getName())
-            ;
-
-            return resolver;
-        }
-
-        protected Object fetchFallback(DataFetchingEnvironment environment) {
-            log.warn(
-                "Can not fetch {}.{}",
-                environment.getParentType().getName(),
-                environment.getFieldDefinition().getName());
-            throw new AssertionError();
-        }
-
-        private <IN, OUT> ValueResolver<IN, OUT> resolve(
-            ResolverFunction<IN, OUT> function,
-            ValueResolver<IN, OUT> resolver
-        ) {
-            function.accept(resolver);
-            return resolver;
-        }
-
-        interface ResolverFunction<IN, OUT> extends Consumer<ValueResolver<IN, OUT>> {
-
-        }
+    {{- end}}
     }
 }

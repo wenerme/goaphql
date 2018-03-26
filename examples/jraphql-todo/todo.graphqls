@@ -1,0 +1,24 @@
+
+type TodoQuery implements NodeQuery{
+    queryByContent(content:String): [Todo!]!
+}
+
+type TodoMutation{
+    createTodo(input: CreateTodoInput!): CreateTodoPayload
+}
+
+type Todo implements Node{
+    content: String
+}
+
+input CreateTodoInput {
+    name: String!
+}
+type CreateTodoPayload {
+    todo: Todo!
+}
+
+schema TodoSchema {
+    query: TodoQuery
+    mutation: TodoMutation
+}

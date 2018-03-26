@@ -1,6 +1,8 @@
 package gqlg
 
 import (
+	"bytes"
+	"context"
 	"fmt"
 	"github.com/Sirupsen/logrus"
 	"github.com/pkg/errors"
@@ -8,9 +10,22 @@ import (
 	"strings"
 )
 
+var defaultJavaTypeMap = map[string]string{
+	"ID":  "String",
+	"Int": "Int",
+}
+
 type GraphQLJavaGenerator struct {
 	CommonGenerator
 	Config *JavaGeneratorConfig
+
+	javaTypes map[string]*javaTypeDefinition
+	ignores   map[string]struct{}
+}
+
+type GenerateJavaFile struct {
+	generateFile
+	JavaPackage string
 }
 
 type JavaGeneratorConfig struct {
@@ -20,6 +35,7 @@ type JavaGeneratorConfig struct {
 	JavaPackage    string
 	ImportPackages []string
 	JavaTypeMap    map[string]string
+	Ignores        []string
 }
 
 func NewGraphQLJavaGenerator(config JavaGeneratorConfig) (*GraphQLJavaGenerator, error) {
@@ -29,12 +45,19 @@ func NewGraphQLJavaGenerator(config JavaGeneratorConfig) (*GraphQLJavaGenerator,
 	}
 
 	g := &GraphQLJavaGenerator{
-		Config: conf,
+		Config:    conf,
+		javaTypes: make(map[string]*javaTypeDefinition),
+		ignores:   make(map[string]struct{}),
 	}
 	err := g.config(conf.CommonGeneratorConfig)
 	if err != nil {
 		return nil, err
 	}
+	for _, v := range conf.Ignores {
+		g.ignores[v] = struct{}{}
+	}
+
+	g.contextCreator = g.createContext
 
 	g.TypeSystem = config.TypeSystem
 	g.Template.Funcs(g.FuncMap(nil))
@@ -42,6 +65,27 @@ func NewGraphQLJavaGenerator(config JavaGeneratorConfig) (*GraphQLJavaGenerator,
 	return g, nil
 }
 
+func (self *GraphQLJavaGenerator) createContext(t *TemplateFile, v interface{}) Context {
+	var ctx Context
+	file := &GenerateJavaFile{
+		generateFile: generateFile{buf: new(bytes.Buffer)},
+		JavaPackage:  self.Config.JavaPackage,
+	}
+	if typ, ok := self.javaTypes[gqll.NameOf(v)]; ok {
+		if typ.javaPackage != "" {
+			file.JavaPackage = typ.javaPackage
+		}
+	}
+	ctx = &generateContext{
+		Context:      context.Background(),
+		templateFile: t,
+		file:         file,
+	}
+
+	self.Context = ctx
+	self.Files = append(self.Files, ctx.File())
+	return ctx
+}
 func (self *GraphQLJavaGenerator) FuncMap(m map[string]interface{}) map[string]interface{} {
 	if m == nil {
 		m = make(map[string]interface{})
@@ -49,6 +93,7 @@ func (self *GraphQLJavaGenerator) FuncMap(m map[string]interface{}) map[string]i
 	m = self.CommonGenerator.FuncMap(m)
 	for k, v := range map[string]interface{}{
 		"Config":          func() interface{} { return self.Config },
+		"IsSkipped":       self.IsSkipped,
 		"GenJavaType":     self.GenJavaType,
 		"GenJavaTypeName": self.GenJavaTypeName,
 		"GenJavaTypeNames": func(a []string) []string {
@@ -82,6 +127,60 @@ func LangFuncMap(m map[string]interface{}) map[string]interface{} {
 		m[k] = v
 	}
 	return m
+}
+
+type javaTypeDefinition struct {
+	name        string
+	javaType    string
+	javaPackage string
+}
+
+func (self *GraphQLJavaGenerator) ScanDefinition() (err error) {
+	defMap := make(map[string]*javaTypeDefinition)
+	for _, v := range self.TypeSystem.GetDefinitions() {
+		t := gqll.TypeOf(v)
+		if !t.IsTypeDefinition() {
+			continue
+		}
+		name := gqll.NameOf(v)
+		javaDef := &javaTypeDefinition{
+			name: name,
+		}
+		defMap[name] = javaDef
+		if err = scanJavaType(javaDef, v); err != nil {
+			return
+		}
+	}
+	self.javaTypes = defMap
+	return nil
+}
+
+// directive @JavaType(package: String, type: String)
+func scanJavaType(t *javaTypeDefinition, def gqll.Definition) (err error) {
+	if v, ok := def.(gqll.HasDirectives); ok {
+		d := v.GetDirective("JavaType")
+		if d == nil {
+			return
+		}
+		argument := d.GetArgument("package")
+		if argument != nil {
+			if val, ok := argument.Value.(*gqll.StringValue); ok {
+				t.javaPackage = val.Value
+			} else {
+				logrus.WithField("Def", d.SourceLocation).WithField("Arg", "package").Fatal("incorrect argument type")
+			}
+		}
+
+		argument = d.GetArgument("type")
+		if argument != nil {
+			if val, ok := argument.Value.(*gqll.StringValue); ok {
+				t.javaType = val.Value
+			} else {
+				logrus.WithField("Def", d.SourceLocation).WithField("Arg", "type").Fatal("incorrect argument type")
+			}
+		}
+	}
+	return
 }
 
 func (self *GraphQLJavaGenerator) GenJavaValue(v interface{}) string {
@@ -123,15 +222,8 @@ func (self *GraphQLJavaGenerator) GenJavaTypeName(name string) string {
 	if name, ok := self.Config.JavaTypeMap[name]; ok {
 		return name
 	}
-	switch name {
-	case "ID":
-		return "String"
-	case "String":
-		return "String"
-	case "Int":
-		return "Integer"
-	case "Boolean":
-		return "Boolean"
+	if typ, ok := self.javaTypes[name]; ok && typ.javaType != "" {
+		return typ.javaType
 	}
 	def := self.TypeSystem.GetNamedDefinition(name)
 	if def == nil {
@@ -146,14 +238,44 @@ func (self *GraphQLJavaGenerator) GenJavaTypeName(name string) string {
 	return name
 }
 
+// Is this definition should be skipped when generate
+func (self *GraphQLJavaGenerator) IsSkipped(d gqll.Definition) bool {
+	if _, ok := self.ignores[gqll.NameOf(d)]; ok {
+		return true
+	}
+	return false
+}
+func (self *GraphQLJavaGenerator) generateTags(d gqll.Definition) (tags []string) {
+	t := gqll.TypeOf(d)
+	if _, ok := self.ignores[gqll.NameOf(d)]; ok {
+		return nil
+	}
+	if t.IsTypeDefinition() {
+		typeName := t.Name()
+		tags = []string{typeName[:len(typeName)-len("TypeDefinition")]}
+	}
+
+	return
+}
+
+func (self *GraphQLJavaGenerator) prepareGenerateGraphQLJava() (err error) {
+	if err := self.ScanTemplate(); err != nil {
+		return errors.Wrap(err, "failed to scan template file")
+	}
+	if err := self.ScanDefinition(); err != nil {
+		return errors.Wrap(err, "failed to scan definiyion")
+	}
+	return
+}
 func (self *GraphQLJavaGenerator) GenerateGraphQLJava() (err error) {
+	if err = self.prepareGenerateGraphQLJava(); err != nil {
+		return
+	}
 	// Generate type
 	for _, v := range self.TypeSystem.GetDefinitions() {
+
+		tags := self.generateTags(v)
 		typeName := gqll.TypeOf(v).Name()
-		if !strings.HasSuffix(typeName, "TypeDefinition") {
-			continue
-		}
-		tags := []string{typeName[:len(typeName)-len("TypeDefinition")]}
 		files := self.SelectTemplateFileByTags(tags...)
 
 		if len(files) == 0 {

@@ -9,9 +9,22 @@ import (
 	"text/template"
 )
 
-type GenerateFile struct {
-	Name string
-	Buf  *bytes.Buffer
+var _ GenerateFile = (*generateFile)(nil)
+var _ Context = (*generateContext)(nil)
+
+type generateFile struct {
+	name string
+	buf  *bytes.Buffer
+}
+
+func (self *generateFile) Name() string {
+	return self.name
+}
+func (self *generateFile) SetName(v string) {
+	self.name = v
+}
+func (self *generateFile) Buf() *bytes.Buffer {
+	return self.buf
 }
 
 type TemplateFile struct {
@@ -21,18 +34,18 @@ type TemplateFile struct {
 	Content   *template.Template
 }
 
-func (self *TemplateFile) Execute(ctx *GenerateContext, v interface{}) (err error) {
-	file := ctx.File
+func (self *TemplateFile) Execute(ctx Context, v interface{}) (err error) {
+	file := ctx.File()
 
 	if self.Filename != nil {
 		buf := new(bytes.Buffer)
 		if err = self.Filename.Execute(buf, v); err != nil {
 			return
 		}
-		file.Name = buf.String()
+		file.SetName(buf.String())
 	}
 
-	if err = self.Content.Execute(file.Buf, v); err != nil {
+	if err = self.Content.Execute(file.Buf(), v); err != nil {
 		return
 	}
 
@@ -40,25 +53,42 @@ func (self *TemplateFile) Execute(ctx *GenerateContext, v interface{}) (err erro
 }
 
 type Generator interface {
-	GetGenerateContext() *GenerateContext
+	Context() *generateContext
+}
+type GenerateFile interface {
+	Name() string
+	SetName(string)
+	Buf() *bytes.Buffer
 }
 
-type GenerateContext struct {
+type Context interface {
 	context.Context
-	File         *GenerateFile
-	TemplateFile *TemplateFile
-	SchemaName   string
+	File() GenerateFile
+	TemplateFile() *TemplateFile
+}
+type generateContext struct {
+	context.Context
+	file         GenerateFile
+	templateFile *TemplateFile
+	schemaName   string
 }
 
-var _ Generator = (*CommonGenerator)(nil)
+func (self *generateContext) File() GenerateFile {
+	return self.file
+}
+
+func (self *generateContext) TemplateFile() *TemplateFile {
+	return self.templateFile
+}
 
 type CommonGenerator struct {
-	Template        *template.Template
-	Files           []*GenerateFile
-	TemplateFiles   []*TemplateFile
-	GenerateContext *GenerateContext
-	TypeSystem      *gqll.TypeSystem
-	conf            *CommonGeneratorConfig
+	Template       *template.Template
+	Files          []GenerateFile
+	TemplateFiles  []*TemplateFile
+	Context        Context
+	TypeSystem     *gqll.TypeSystem
+	contextCreator func(*TemplateFile, interface{}) Context
+	conf           *CommonGeneratorConfig
 }
 type CommonGeneratorConfig struct {
 	// Base template
@@ -76,10 +106,6 @@ func (self *CommonGenerator) config(config CommonGeneratorConfig) error {
 	self.conf = &config
 	self.Template = config.Template
 	return nil
-}
-
-func (self *CommonGenerator) GetGenerateContext() *GenerateContext {
-	return self.GenerateContext
 }
 
 func (self *CommonGenerator) SelectTemplateFileByTags(tags ...string) []*TemplateFile {
@@ -107,7 +133,7 @@ func (self *CommonGenerator) FuncMap(m map[string]interface{}) map[string]interf
 	m = _TemplateHelper.FuncMap(m)
 	m = LangFuncMap(m)
 	for k, v := range map[string]interface{}{
-		"Context": func() interface{} { return self.GenerateContext },
+		"Context": func() interface{} { return self.Context },
 	} {
 		m[k] = v
 	}
@@ -115,19 +141,24 @@ func (self *CommonGenerator) FuncMap(m map[string]interface{}) map[string]interf
 }
 
 func (self *CommonGenerator) Generate(t *TemplateFile, v interface{}) error {
-	ctx := self.createContext(t)
+	ctx := self.createContext(t, v)
 	return t.Execute(ctx, v)
 }
 
-func (self *CommonGenerator) createContext(t *TemplateFile) *GenerateContext {
-	ctx := &GenerateContext{
-		Context:      context.Background(),
-		TemplateFile: t,
-		File:         &GenerateFile{Buf: new(bytes.Buffer)},
+func (self *CommonGenerator) createContext(t *TemplateFile, v interface{}) Context {
+	var ctx Context
+	if self.contextCreator != nil {
+		ctx = self.contextCreator(t, v)
+	} else {
+		ctx = &generateContext{
+			Context:      context.Background(),
+			templateFile: t,
+			file:         &generateFile{buf: new(bytes.Buffer)},
+		}
 	}
 
-	self.GenerateContext = ctx
-	self.Files = append(self.Files, ctx.File)
+	self.Context = ctx
+	self.Files = append(self.Files, ctx.File())
 	return ctx
 }
 func (self *CommonGenerator) ScanTemplate() (err error) {

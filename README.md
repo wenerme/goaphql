@@ -10,26 +10,45 @@ Read in | [中文](./README.zh-CN.md) | [English](./README.md)
 go get -u -v github.com/wenerme/goaphql/cmd/goaphql
 ```
 
-### Generator
+## graphql-java
 
 ```bash
 # Generate
 # Package com.github
 # Name Github
-goaphql generate graphql-java -s github.graphqls -p com.github -n GitHub
+goaphql generate graphql-java -s github.graphqls -P com.github -N GitHub
 # same
-goaphql g gj -s github.graphqls -p com.github -n GitHub
+goaphql g gj -s github.graphqls -P com.github -N GitHub
 
 # Customization
 # Dump templates
-goaphql g dump -t tmpl/graphql-java --prefix tmpl/graphql-java -d ./tpl
+goaphql dump -t tmpl/graphql-java --prefix tmpl/graphql-java -d ./tpl
 # Modify templats
 # Add package-info.java
 echo -e 'package {{Config.JavaPackage}};' > './tpl/Java#package-info.java.tmpl'
 # Generate using modified templates
-goaphql generate graphql-java -t ./tpl -s github.graphqls -p com.github -n GitHub
+goaphql generate graphql-java -t ./tpl -s github.graphqls -P com.github -N GitHub
 # Check the new file
 cat out/me/wener/package-info.java
+```
+
+### Dependencies
+Generated depends on [wenerme/jraphql](https://github.com/wenerme/jraphql) .
+
+```xml
+<dependencies>
+  <dependency>
+      <groupId>me.wener.jraphql</groupId>
+      <artifactId>jraphql-graphql-java-adapter</artifactId>
+      <version>0.0.2</version>
+  </dependency>
+  <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>1.16.20</version>
+      <scope>provided</scope>
+  </dependency>
+</dependencies>
 ```
 
 ## Inside

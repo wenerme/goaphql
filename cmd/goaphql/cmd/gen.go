@@ -26,6 +26,7 @@ type _generateConf struct {
 	Templates   []string
 	Destination string
 	Schemas     []string
+	Includes    []string
 
 	OptionMap map[string]string
 	Options   []string
@@ -47,6 +48,12 @@ func init() {
 
 	genCmd.PersistentFlags().StringVarP(&generateConf.Destination, "dest", "d", "out", "Output dir")
 	genCmd.PersistentFlags().StringSliceVarP(&generateConf.Templates, "template", "t", nil, "Custom templates")
-	genCmd.PersistentFlags().StringSliceVarP(&generateConf.Schemas, "schema", "s", nil, "GraphQL Schemas")
+	genCmd.PersistentFlags().StringSliceVarP(&generateConf.Schemas, "schema", "s", nil, "GraphQL schemas")
+	genCmd.PersistentFlags().StringSliceVarP(&generateConf.Includes, "include", "i", nil, "Include extra schemas but not generate")
 	genCmd.PersistentFlags().StringSliceVar(&generateConf.Options, "D", nil, "Custom option")
+
+	genCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
+		generateConf.OptionMap = sliceToMap(generateConf.Options)
+		return nil
+	}
 }

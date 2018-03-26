@@ -5,8 +5,19 @@ import (
 	"github.com/wenerme/goaphql/gqll"
 )
 
+type ParseOption struct {
+	Source  string // source of the content
+	Content string
+}
+
 func ParseContent(content string) (doc *gqll.Document, err error) {
-	input := antlr.NewInputStream(content)
+	return ParseWithOption(ParseOption{
+		Source:  "inline",
+		Content: content,
+	})
+}
+func ParseWithOption(opt ParseOption) (doc *gqll.Document, err error) {
+	input := antlr.NewInputStream(opt.Content)
 	lexer := NewGraphQLLexer(input)
 	stream := antlr.NewCommonTokenStream(lexer, 0)
 
@@ -15,6 +26,8 @@ func ParseContent(content string) (doc *gqll.Document, err error) {
 	parser.BuildParseTrees = true
 
 	ctx := parser.Document()
-	doc = ctx.Accept(NewGraphQLLangVisitor()).(*gqll.Document)
+	visitor := NewGraphQLLangVisitor()
+	visitor.Source = opt.Source
+	doc = ctx.Accept(visitor).(*gqll.Document)
 	return
 }
