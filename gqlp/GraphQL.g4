@@ -1,10 +1,19 @@
 // GraphQL Grammer
+// ==============
+// https://github.com/wenerme/wener/tree/master/tricks/languages/antlr/GraphQL.g4
+//
 // Appendix B -- Grammar Summary.md https://github.com/facebook/graphql/blob/master/spec/Appendix%20B%20--%20Grammar%20Summary.md
 //
-// Modifies
-// - Add extend by syntax
+// Changes - search `//extension` in grammer to find out where has been extended
+// - Add `extend by name` syntax for object and interface
 // - Allowed use keyword as name
-// - Allowed directives on directive definition
+// - Allowed directives on directive definition, add DIRECTIVE location
+// - Allowed schema has optional name
+// - Allowed optional '&' for interface
+//
+// Notes
+// - Change type to typeSpce for Go target to prevent name conflict
+//
 
 grammar GraphQL;
 
@@ -198,7 +207,6 @@ variableDefinition : variable ':' typeSpec defaultValue? ;
 defaultValue : value ;
 
 // 2.11 Input Types
-// NOTE type -> typeSpec to prevent name confilict
 typeSpec
   : namedType
   | listType
@@ -225,7 +233,7 @@ typeSystemDefinition
   | directiveDefinition
   ;
 
-// extension name?
+//extension name?
 schemaDefinition
 : 'schema' name? directives? '{' operationTypeDefinition+ '}'
 ;
@@ -261,12 +269,12 @@ objectTypeExtension
   : 'extend' 'type' name implementsInterfaces? directives? fieldsDefinition
   | 'extend' 'type' name implementsInterfaces? directives
   | 'extend' 'type' name implementsInterfaces
-  | 'extend' 'type' name 'by' name // extension
+  | 'extend' 'type' name 'by' name directives? fieldsDefinition? //extension
   ;
 // Recursion  'implements' _ '&'? _ NamedType / ImplementsInterfaces _ '&' _ NamedType
 implementsInterfaces
   : 'implements' '&'? namedType
-  | implementsInterfaces '&'? namedType
+  | implementsInterfaces '&'? namedType //extension optional '&'?
   ;
 
 fieldsDefinition : '{' fieldDefinition+ '}' ;
@@ -282,7 +290,7 @@ interfaceTypeDefinition : description? 'interface' name directives? fieldsDefini
 interfaceTypeExtension
   : 'extend' 'interface' name directives? fieldsDefinition
   | 'extend' 'interface' name directives
-  | 'extend' 'interface' name 'by' name // extension
+  | 'extend' 'interface' name 'by' name directives? fieldsDefinition? //extension
   ;
 
 unionTypeDefinition : description? 'union' name directives? unionMemberTypes? ;
@@ -297,7 +305,6 @@ unionMemberTypes
 unionTypeExtension
   : 'extend' 'union' name directives? unionMemberTypes
   | 'extend' 'union' name directives
-  | 'extend' 'union' name 'by' name // extension
   ;
 enumTypeDefinition : description? 'enum' name directives? enumValuesDefinition? ;
 
@@ -308,7 +315,6 @@ enumValueDefinition : description? enumValue directives? ;
 enumTypeExtension
   : 'extend' 'enum' name directives? enumValuesDefinition
   | 'extend' 'enum' name directives
-  | 'extend' 'enum' name 'by' name // extension
   ;
 
 inputObjectTypeDefinition : description? 'input' name directives? inputFieldsDefinition?;
@@ -318,9 +324,8 @@ inputFieldsDefinition : '{' inputValueDefinition+ '}' ;
 inputObjectTypeExtension
   : 'extend' 'input' name directives? inputFieldsDefinition
   | 'extend' 'input' name directives
-  | 'extend' 'input' name 'by' name // extension
   ;
-// extension directives? allowed directive on directive
+//extension directives? allowed directive on directive
 directiveDefinition : description? 'directive' '@' name directives? argumentsDefinition? 'on' directiveLocations;
 
 // Recursion '|'? _ DirectiveLocation / DirectiveLocations _ '|' _ DirectiveLocation
@@ -357,9 +362,8 @@ TypeSystemDirectiveLocation
   | 'ENUM_VALUE'
   | 'INPUT_OBJECT'
   | 'INPUT_FIELD_DEFINITION'
-  | 'DIRECTIVE' // extension
+  | 'DIRECTIVE' //extension
   ;
 
 // Must in the last
 NAME : [_a-zA-Z] [_a-zA-Z0-9]* ;
-
