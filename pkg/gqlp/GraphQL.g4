@@ -67,6 +67,7 @@ document
 definition
   : executableDefinition
   | typeSystemDefinition
+  | typeSystemExtension
   ;
 
 executableDefinition
@@ -168,9 +169,15 @@ booleanValue : 'true' | 'false' ;
 stringValue
   : StringConst
   ;
-StringConst : '""' | '"' StringCharacter+ '"';
+
+StringConst
+  : '"""' BlockStringCharacter* '"""' // todo need to test
+  | '""'
+  | '"' StringCharacter+ '"'
+  ;
+
 fragment StringCharacter
-  : [\u0009\u0020\u0021\u0023-\u005B\u005D-\uFFFF] // SourceCharacter bit not " \u0022 or \ \u005C or LineTerminator
+  : [\u0009\u0020\u0021\u0023-\u005B\u005D-\uFFFF] // SourceCharacter but not " \u0022 or \ \u005C or LineTerminator
   | '\\u' EscapedUnicode
   | '\\' EscapedCharacter
   ;
@@ -178,6 +185,10 @@ fragment StringCharacter
 fragment EscapedUnicode : [0-9A-Fa-f] [0-9A-Fa-f] [0-9A-Fa-f] [0-9A-Fa-f];
 
 fragment EscapedCharacter : ["\\/bfnrt];
+
+fragment SourceCharacter : [\u0009\u000A\u000D\u0020-\uFFFF] ;
+
+fragment BlockStringCharacter : [\u0009\u000A\u000D\u0020-\uFFFF] ;
 
 // 2.9.5 Null Value
 nullValue : 'null' ;
@@ -203,7 +214,7 @@ objectField : name ':' value ;
 // 2.10 Variables
 variable : '$' name ;
 variableDefinitions : '(' variableDefinition+ ')' ;
-variableDefinition : variable ':' typeSpec defaultValue? ;
+variableDefinition : variable ':' typeSpec defaultValue? directives? ;
 defaultValue : value ;
 
 // 2.11 Input Types
@@ -229,15 +240,25 @@ directive : '@' name arguments? ;
 typeSystemDefinition
   : schemaDefinition
   | typeDefinition
-  | typeExtension
   | directiveDefinition
+  ;
+
+typeSystemExtension
+  : schemaExtension
+  | typeExtension
   ;
 
 //extension name?
 schemaDefinition
-: 'schema' name? directives? '{' operationTypeDefinition+ '}'
+: description? 'schema' name? directives? '{' rootOperationTypeDefinition+ '}'
 ;
-operationTypeDefinition : operationType ':' namedType;
+
+schemaExtension
+  : 'extend' 'schema' directives? '{' rootOperationTypeDefinition+ '}'
+  | 'extend' 'schema' directives
+  ;
+
+rootOperationTypeDefinition : operationType ':' namedType;
 
 description : stringValue ;
 
@@ -288,9 +309,9 @@ inputValueDefinition : description? name ':' typeSpec ('='? defaultValue)? direc
 interfaceTypeDefinition : description? 'interface' name directives? fieldsDefinition? ;
 
 interfaceTypeExtension
-  : 'extend' 'interface' name directives? fieldsDefinition
-  | 'extend' 'interface' name directives
-  | 'extend' 'interface' name 'by' name directives? fieldsDefinition? //extension
+  : 'extend' 'interface' name implementsInterfaces? directives? fieldsDefinition
+  | 'extend' 'interface' name implementsInterfaces? directives
+  | 'extend' 'interface' name implementsInterfaces? 'by' name directives? fieldsDefinition? //extension
   ;
 
 unionTypeDefinition : description? 'union' name directives? unionMemberTypes? ;
@@ -326,7 +347,7 @@ inputObjectTypeExtension
   | 'extend' 'input' name directives
   ;
 //extension directives? allowed directive on directive
-directiveDefinition : description? 'directive' '@' name directives? argumentsDefinition? 'on' directiveLocations;
+directiveDefinition : description? 'directive' '@' name directives? argumentsDefinition? 'repeatable'? 'on' directiveLocations;
 
 // Recursion '|'? _ DirectiveLocation / DirectiveLocations _ '|' _ DirectiveLocation
 directiveLocations
@@ -348,6 +369,7 @@ ExecutableDirectiveLocation
   | 'FRAGMENT_DEFINITION'
   | 'FRAGMENT_SPREAD'
   | 'INLINE_FRAGMENT'
+  | 'VARIABLE_DEFINITION'
   ;
 
 TypeSystemDirectiveLocation
@@ -364,6 +386,8 @@ TypeSystemDirectiveLocation
   | 'INPUT_FIELD_DEFINITION'
   | 'DIRECTIVE' //extension
   ;
+
+// Punctuator :: one of ! $ & ( ) ... : = @ [ ] { | }
 
 // Must in the last
 NAME : [_a-zA-Z] [_a-zA-Z0-9]* ;

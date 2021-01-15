@@ -124,11 +124,17 @@ type GraphQLListener interface {
 	// EnterTypeSystemDefinition is called when entering the typeSystemDefinition production.
 	EnterTypeSystemDefinition(c *TypeSystemDefinitionContext)
 
+	// EnterTypeSystemExtension is called when entering the typeSystemExtension production.
+	EnterTypeSystemExtension(c *TypeSystemExtensionContext)
+
 	// EnterSchemaDefinition is called when entering the schemaDefinition production.
 	EnterSchemaDefinition(c *SchemaDefinitionContext)
 
-	// EnterOperationTypeDefinition is called when entering the operationTypeDefinition production.
-	EnterOperationTypeDefinition(c *OperationTypeDefinitionContext)
+	// EnterSchemaExtension is called when entering the schemaExtension production.
+	EnterSchemaExtension(c *SchemaExtensionContext)
+
+	// EnterRootOperationTypeDefinition is called when entering the rootOperationTypeDefinition production.
+	EnterRootOperationTypeDefinition(c *RootOperationTypeDefinitionContext)
 
 	// EnterDescription is called when entering the description production.
 	EnterDescription(c *DescriptionContext)
@@ -325,11 +331,17 @@ type GraphQLListener interface {
 	// ExitTypeSystemDefinition is called when exiting the typeSystemDefinition production.
 	ExitTypeSystemDefinition(c *TypeSystemDefinitionContext)
 
+	// ExitTypeSystemExtension is called when exiting the typeSystemExtension production.
+	ExitTypeSystemExtension(c *TypeSystemExtensionContext)
+
 	// ExitSchemaDefinition is called when exiting the schemaDefinition production.
 	ExitSchemaDefinition(c *SchemaDefinitionContext)
 
-	// ExitOperationTypeDefinition is called when exiting the operationTypeDefinition production.
-	ExitOperationTypeDefinition(c *OperationTypeDefinitionContext)
+	// ExitSchemaExtension is called when exiting the schemaExtension production.
+	ExitSchemaExtension(c *SchemaExtensionContext)
+
+	// ExitRootOperationTypeDefinition is called when exiting the rootOperationTypeDefinition production.
+	ExitRootOperationTypeDefinition(c *RootOperationTypeDefinitionContext)
 
 	// ExitDescription is called when exiting the description production.
 	ExitDescription(c *DescriptionContext)

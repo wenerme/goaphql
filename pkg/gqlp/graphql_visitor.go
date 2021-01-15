@@ -124,11 +124,17 @@ type GraphQLVisitor interface {
 	// Visit a parse tree produced by GraphQLParser#typeSystemDefinition.
 	VisitTypeSystemDefinition(ctx *TypeSystemDefinitionContext) interface{}
 
+	// Visit a parse tree produced by GraphQLParser#typeSystemExtension.
+	VisitTypeSystemExtension(ctx *TypeSystemExtensionContext) interface{}
+
 	// Visit a parse tree produced by GraphQLParser#schemaDefinition.
 	VisitSchemaDefinition(ctx *SchemaDefinitionContext) interface{}
 
-	// Visit a parse tree produced by GraphQLParser#operationTypeDefinition.
-	VisitOperationTypeDefinition(ctx *OperationTypeDefinitionContext) interface{}
+	// Visit a parse tree produced by GraphQLParser#schemaExtension.
+	VisitSchemaExtension(ctx *SchemaExtensionContext) interface{}
+
+	// Visit a parse tree produced by GraphQLParser#rootOperationTypeDefinition.
+	VisitRootOperationTypeDefinition(ctx *RootOperationTypeDefinitionContext) interface{}
 
 	// Visit a parse tree produced by GraphQLParser#description.
 	VisitDescription(ctx *DescriptionContext) interface{}

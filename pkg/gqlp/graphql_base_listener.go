@@ -254,17 +254,31 @@ func (s *BaseGraphQLListener) EnterTypeSystemDefinition(ctx *TypeSystemDefinitio
 // ExitTypeSystemDefinition is called when production typeSystemDefinition is exited.
 func (s *BaseGraphQLListener) ExitTypeSystemDefinition(ctx *TypeSystemDefinitionContext) {}
 
+// EnterTypeSystemExtension is called when production typeSystemExtension is entered.
+func (s *BaseGraphQLListener) EnterTypeSystemExtension(ctx *TypeSystemExtensionContext) {}
+
+// ExitTypeSystemExtension is called when production typeSystemExtension is exited.
+func (s *BaseGraphQLListener) ExitTypeSystemExtension(ctx *TypeSystemExtensionContext) {}
+
 // EnterSchemaDefinition is called when production schemaDefinition is entered.
 func (s *BaseGraphQLListener) EnterSchemaDefinition(ctx *SchemaDefinitionContext) {}
 
 // ExitSchemaDefinition is called when production schemaDefinition is exited.
 func (s *BaseGraphQLListener) ExitSchemaDefinition(ctx *SchemaDefinitionContext) {}
 
-// EnterOperationTypeDefinition is called when production operationTypeDefinition is entered.
-func (s *BaseGraphQLListener) EnterOperationTypeDefinition(ctx *OperationTypeDefinitionContext) {}
+// EnterSchemaExtension is called when production schemaExtension is entered.
+func (s *BaseGraphQLListener) EnterSchemaExtension(ctx *SchemaExtensionContext) {}
 
-// ExitOperationTypeDefinition is called when production operationTypeDefinition is exited.
-func (s *BaseGraphQLListener) ExitOperationTypeDefinition(ctx *OperationTypeDefinitionContext) {}
+// ExitSchemaExtension is called when production schemaExtension is exited.
+func (s *BaseGraphQLListener) ExitSchemaExtension(ctx *SchemaExtensionContext) {}
+
+// EnterRootOperationTypeDefinition is called when production rootOperationTypeDefinition is entered.
+func (s *BaseGraphQLListener) EnterRootOperationTypeDefinition(ctx *RootOperationTypeDefinitionContext) {
+}
+
+// ExitRootOperationTypeDefinition is called when production rootOperationTypeDefinition is exited.
+func (s *BaseGraphQLListener) ExitRootOperationTypeDefinition(ctx *RootOperationTypeDefinitionContext) {
+}
 
 // EnterDescription is called when production description is entered.
 func (s *BaseGraphQLListener) EnterDescription(ctx *DescriptionContext) {}

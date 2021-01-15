@@ -163,11 +163,19 @@ func (v *BaseGraphQLVisitor) VisitTypeSystemDefinition(ctx *TypeSystemDefinition
 	return v.VisitChildren(ctx)
 }
 
+func (v *BaseGraphQLVisitor) VisitTypeSystemExtension(ctx *TypeSystemExtensionContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
 func (v *BaseGraphQLVisitor) VisitSchemaDefinition(ctx *SchemaDefinitionContext) interface{} {
 	return v.VisitChildren(ctx)
 }
 
-func (v *BaseGraphQLVisitor) VisitOperationTypeDefinition(ctx *OperationTypeDefinitionContext) interface{} {
+func (v *BaseGraphQLVisitor) VisitSchemaExtension(ctx *SchemaExtensionContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseGraphQLVisitor) VisitRootOperationTypeDefinition(ctx *RootOperationTypeDefinitionContext) interface{} {
 	return v.VisitChildren(ctx)
 }
 
