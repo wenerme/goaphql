@@ -367,9 +367,17 @@ func (v *GraphQLLangVisitor) VisitInputObjectTypeExtension(ctx *InputObjectTypeE
 func (v *GraphQLLangVisitor) VisitDirectiveDefinition(ctx *DirectiveDefinitionContext) interface{} {
 	node := new(gqll.DirectiveDefinition)
 	v.Extract(ctx.BaseParserRuleContext, node)
+	// todo repeat
 	val := v.VisitDirectiveLocations(ctx.DirectiveLocations().(*DirectiveLocationsContext))
 	if val != nil {
 		node.Locations = val.([]string)
+	}
+	// repeatable
+	child := ctx.GetChild(ctx.GetChildCount() - 3).GetPayload()
+	if token, ok := child.(*antlr.CommonToken); ok {
+		if token.GetText() == "repeatable" {
+			node.Repeatable = true
+		}
 	}
 	return node
 }

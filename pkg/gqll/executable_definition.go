@@ -37,6 +37,7 @@ type VariableDefinition struct {
 	baseNode
 	hasType
 	hasDefaultValue
+	hasDirectives
 	VariableName string
 }
 

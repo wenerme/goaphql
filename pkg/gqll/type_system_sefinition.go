@@ -63,7 +63,8 @@ type EnumTypeDefinition struct {
 type DirectiveDefinition struct {
 	baseTypeDefinition
 	hasArgumentDefinitions
-	Locations []string
+	Repeatable bool
+	Locations  []string
 }
 
 // endregion
