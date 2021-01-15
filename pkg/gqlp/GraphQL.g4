@@ -12,7 +12,7 @@
 // - Allowed optional '&' for interface
 //
 // Notes
-// - Change type to typeSpce for Go target to prevent name conflict
+// - Change type to typeSpec for Go target to prevent name conflict
 //
 
 grammar GraphQL;

@@ -2,7 +2,7 @@ package gqlp
 
 import (
 	"github.com/antlr/antlr4/runtime/Go/antlr"
-	"github.com/wenerme/goaphql/gqll"
+	"github.com/wenerme/goaphql/pkg/gqll"
 )
 
 type ParseOption struct {

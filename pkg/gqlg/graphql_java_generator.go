@@ -4,16 +4,17 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/Sirupsen/logrus"
-	"github.com/pkg/errors"
-	"github.com/wenerme/goaphql/gqll"
 	"strings"
+
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"github.com/wenerme/goaphql/pkg/gqll"
 )
 
-var defaultJavaTypeMap = map[string]string{
-	"ID":  "String",
-	"Int": "Int",
-}
+// var defaultJavaTypeMap = map[string]string{
+// 	"ID":  "String",
+// 	"Int": "Int",
+// }
 
 type GraphQLJavaGenerator struct {
 	CommonGenerator
@@ -61,8 +62,7 @@ func NewGraphQLJavaGenerator(config JavaGeneratorConfig) (*GraphQLJavaGenerator,
 
 	g.TypeSystem = config.TypeSystem
 	g.Template.Funcs(g.FuncMap(nil))
-	g.ScanTemplate()
-	return g, nil
+	return g, g.ScanTemplate()
 }
 
 func (self *GraphQLJavaGenerator) createContext(t *TemplateFile, v interface{}) Context {
@@ -195,11 +195,9 @@ func (self *GraphQLJavaGenerator) GenJavaValue(v interface{}) string {
 		return "null"
 	case *gqll.StringValue:
 		return fmt.Sprint('"', v.Value, '"')
-
 	default:
 		panic("Unexpected")
 	}
-	return ""
 }
 func (self *GraphQLJavaGenerator) GenJavaType(v interface{}) string {
 	switch v := v.(type) {
@@ -214,7 +212,6 @@ func (self *GraphQLJavaGenerator) GenJavaType(v interface{}) string {
 	default:
 		panic("Unexpected")
 	}
-	return ""
 }
 
 // Map a name for Java

@@ -1,9 +1,10 @@
 package gqll
 
 import (
-	"github.com/Sirupsen/logrus"
-	"github.com/pkg/errors"
 	"strings"
+
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 type TypeSystem struct {
@@ -99,7 +100,9 @@ func MergeDefinitions(definitions []Definition) (Definition, error) {
 		if i == targetIdx {
 			continue
 		}
-		MergeDefinition(target, v)
+		if err := MergeDefinition(target, v); err != nil {
+			return nil, err
+		}
 	}
 
 	return definitions[0], nil

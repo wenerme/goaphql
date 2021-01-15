@@ -15,16 +15,17 @@
 package cmd
 
 import (
-	"github.com/Sirupsen/logrus"
-	"github.com/spf13/cobra"
-	"github.com/wenerme/goaphql/cmd/goaphql/cmd/goaphqltmpl"
-	"github.com/wenerme/goaphql/gqlg"
-	"github.com/wenerme/goaphql/gqll"
-	"github.com/wenerme/goaphql/gqlp"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+	"github.com/wenerme/goaphql/cmd/goaphql/cmd/goaphqltmpl"
+	"github.com/wenerme/goaphql/pkg/gqlg"
+	"github.com/wenerme/goaphql/pkg/gqll"
+	"github.com/wenerme/goaphql/pkg/gqlp"
 )
 
 var generateGJConf = &_generateGJConf{}

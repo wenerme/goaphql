@@ -1,11 +1,12 @@
 package gqlp
 
 import (
-	"github.com/Sirupsen/logrus"
-	"github.com/antlr/antlr4/runtime/Go/antlr"
-	"github.com/wenerme/goaphql/gqll"
 	"reflect"
 	"strconv"
+
+	"github.com/antlr/antlr4/runtime/Go/antlr"
+	"github.com/sirupsen/logrus"
+	"github.com/wenerme/goaphql/pkg/gqll"
 )
 
 var _ GraphQLVisitor = &GraphQLLangVisitor{}

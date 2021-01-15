@@ -3,10 +3,11 @@ package gqlg
 import (
 	"bytes"
 	"context"
-	"github.com/pkg/errors"
-	"github.com/wenerme/goaphql/gqll"
 	"strings"
 	"text/template"
+
+	"github.com/pkg/errors"
+	"github.com/wenerme/goaphql/pkg/gqll"
 )
 
 var _ GenerateFile = (*generateFile)(nil)
@@ -70,7 +71,7 @@ type generateContext struct {
 	context.Context
 	file         GenerateFile
 	templateFile *TemplateFile
-	schemaName   string
+	// schemaName   string
 }
 
 func (self *generateContext) File() GenerateFile {

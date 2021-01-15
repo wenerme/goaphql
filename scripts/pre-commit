@@ -1,0 +1,5 @@
+#!/bin/sh
+gofmt -w $(find . -type f -name '*.go' -not -path "./vendor/*")
+goimports -w $(find . -type f -name '*.go' -not -path "./vendor/*")
+
+golangci-lint run --fix

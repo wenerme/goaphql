@@ -1,5 +1,9 @@
 package gqll
 
+// fixme unused - remove later
+var _ = hasEnumValue{}
+var _ = hasExtendTypeName{}
+
 type baseNode struct {
 	SourceLocation *SourceLocation
 	Comments       []Comment

@@ -16,13 +16,14 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/Sirupsen/logrus"
-	"github.com/spf13/cobra"
-	"github.com/wenerme/goaphql/cmd/goaphql/cmd/goaphqltmpl"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+	"github.com/wenerme/goaphql/cmd/goaphql/cmd/goaphqltmpl"
 )
 
 // goaphql g dump -t tmpl/graphql-java -d ./tmpl

@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	"github.com/Sirupsen/logrus"
 	"strings"
+
+	"github.com/sirupsen/logrus"
 )
 
 func sliceToMap(a []string) map[string]string {
