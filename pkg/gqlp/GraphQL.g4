@@ -3,6 +3,7 @@
 // https://github.com/wenerme/wener/tree/master/tricks/languages/antlr/GraphQL.g4
 //
 // Appendix B -- Grammar Summary.md https://github.com/facebook/graphql/blob/master/spec/Appendix%20B%20--%20Grammar%20Summary.md
+// commit 02fd71f816139b7e040f969860778d23df288d32 - 2020-02-07
 //
 // Changes - search `//extension` in grammer to find out where has been extended
 // - Add `extend by name` syntax for object and interface

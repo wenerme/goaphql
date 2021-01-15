@@ -116,4 +116,8 @@ type EnumTypeExtension struct {
 	baseTypeExtension
 }
 
+type SchemaTypeExtension struct {
+	baseTypeExtension
+}
+
 // endregion

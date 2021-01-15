@@ -79,6 +79,7 @@ func init() {
 		(*ObjectTypeExtension)(nil),
 		(*InputObjectTypeExtension)(nil),
 		(*EnumTypeExtension)(nil),
+		(*SchemaTypeExtension)(nil),
 
 		// Directive
 		(*Directive)(nil),

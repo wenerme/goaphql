@@ -22,6 +22,10 @@ type GraphQLLangVisitor struct {
 	Source string
 }
 
+func (v *GraphQLLangVisitor) VisitSchemaExtension(ctx *SchemaExtensionContext) interface{} {
+	return v.Extract(ctx.BaseParserRuleContext, new(gqll.SchemaTypeExtension))
+}
+
 func (v *GraphQLLangVisitor) VisitGraphql(ctx *GraphqlContext) interface{} {
 	return v.Visit(ctx.Document())
 }
@@ -202,8 +206,8 @@ func (v *GraphQLLangVisitor) VisitTypeSystemDefinition(ctx *TypeSystemDefinition
 func (v *GraphQLLangVisitor) VisitSchemaDefinition(ctx *SchemaDefinitionContext) interface{} {
 	node := new(gqll.SchemaDefinition)
 	v.Extract(ctx.BaseParserRuleContext, node)
-	for _, op := range ctx.AllOperationTypeDefinition() {
-		c := op.(*OperationTypeDefinitionContext)
+	for _, op := range ctx.AllRootOperationTypeDefinition() {
+		c := op.(*RootOperationTypeDefinitionContext)
 		typeName := c.NamedType().GetText()
 		switch c.OperationType().GetText() {
 		case "query":
@@ -219,7 +223,7 @@ func (v *GraphQLLangVisitor) VisitSchemaDefinition(ctx *SchemaDefinitionContext)
 	return node
 }
 
-func (v *GraphQLLangVisitor) VisitOperationTypeDefinition(ctx *OperationTypeDefinitionContext) interface{} {
+func (v *GraphQLLangVisitor) VisitRootOperationTypeDefinition(ctx *RootOperationTypeDefinitionContext) interface{} {
 	return v.VisitChildren(ctx)
 }
 
@@ -232,6 +236,9 @@ func (v *GraphQLLangVisitor) VisitTypeDefinition(ctx *TypeDefinitionContext) int
 }
 
 func (v *GraphQLLangVisitor) VisitTypeExtension(ctx *TypeExtensionContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+func (v *GraphQLLangVisitor) VisitTypeSystemExtension(ctx *TypeSystemExtensionContext) interface{} {
 	return v.VisitChildren(ctx)
 }
 
