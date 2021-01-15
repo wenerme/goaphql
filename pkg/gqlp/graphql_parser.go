@@ -1,4 +1,4 @@
-// Code generated from GraphQL.g4 by ANTLR 4.7.1. DO NOT EDIT.
+// Code generated from GraphQL.g4 by ANTLR 4.9.1. DO NOT EDIT.
 
 package gqlp // GraphQL
 import (
@@ -334,9 +334,6 @@ var parserATN = []uint16{
 	590, 593, 598, 601, 607, 612, 616, 622, 631, 634, 639, 642, 648, 656, 665,
 	668, 674, 677, 684, 693,
 }
-var deserializer = antlr.NewATNDeserializer(nil)
-var deserializedATN = deserializer.DeserializeFromUInt16(parserATN)
-
 var literalNames = []string{
 	"", "'type'", "'on'", "'fragment'", "'extend'", "'implements'", "'schema'",
 	"'enum'", "'union'", "'interface'", "'input'", "'scalar'", "'directive'",
@@ -369,21 +366,25 @@ var ruleNames = []string{
 	"inputObjectTypeDefinition", "inputFieldsDefinition", "inputObjectTypeExtension",
 	"directiveDefinition", "directiveLocations",
 }
-var decisionToDFA = make([]*antlr.DFA, len(deserializedATN.DecisionToState))
-
-func init() {
-	for index, ds := range deserializedATN.DecisionToState {
-		decisionToDFA[index] = antlr.NewDFA(ds, index)
-	}
-}
 
 type GraphQLParser struct {
 	*antlr.BaseParser
 }
 
+// NewGraphQLParser produces a new parser instance for the optional input antlr.TokenStream.
+//
+// The *GraphQLParser instance produced may be reused by calling the SetInputStream method.
+// The initial parser configuration is expensive to construct, and the object is not thread-safe;
+// however, if used within a Golang sync.Pool, the construction cost amortizes well and the
+// objects can be used in a thread-safe manner.
 func NewGraphQLParser(input antlr.TokenStream) *GraphQLParser {
 	this := new(GraphQLParser)
-
+	deserializer := antlr.NewATNDeserializer(nil)
+	deserializedATN := deserializer.DeserializeFromUInt16(parserATN)
+	decisionToDFA := make([]*antlr.DFA, len(deserializedATN.DecisionToState))
+	for index, ds := range deserializedATN.DecisionToState {
+		decisionToDFA[index] = antlr.NewDFA(ds, index)
+	}
 	this.BaseParser = antlr.NewBaseParser(input)
 
 	this.Interpreter = antlr.NewParserATNSimulator(this, deserializedATN, decisionToDFA, antlr.NewPredictionContextCache())

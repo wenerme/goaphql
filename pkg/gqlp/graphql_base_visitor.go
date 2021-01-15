@@ -1,4 +1,4 @@
-// Code generated from GraphQL.g4 by ANTLR 4.7.1. DO NOT EDIT.
+// Code generated from GraphQL.g4 by ANTLR 4.9.1. DO NOT EDIT.
 
 package gqlp // GraphQL
 import "github.com/antlr/antlr4/runtime/Go/antlr"
