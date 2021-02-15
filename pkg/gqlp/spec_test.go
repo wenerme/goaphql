@@ -4,9 +4,17 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/assert"
 	"github.com/wenerme/goaphql/pkg/gqll"
+	"io/ioutil"
 	"testing"
 )
 
+func TestSpecParse(t *testing.T) {
+	b, err := ioutil.ReadFile("testdata/spec.graphql")
+	assert.NoError(t, err)
+	doc, err := ParseContent(string(b))
+	assert.NoError(t, err)
+	_ = doc
+}
 func TestDefinitionSpec(t *testing.T) {
 	for _, test := range []struct {
 		raw string
